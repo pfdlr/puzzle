@@ -4,21 +4,55 @@
 <head>
     <title>Puzzle</title>
     <link rel="stylesheet" href="style.css" />
-    <script type="text/javascript" src="./script.js"></script>
+   
 </head>
 
-<body onload="init();">
+<body>
     <div class="container">
-        <label for="select">Wybierz obrazek</label>
-        <form>
-            <select onchange="selectImage()" name="select" id="select">
-                <option value="cyk">Cykoria</option>
-                <option value="mke">Las</option>
-                <option value="mke1">Budynek</option>
-            </select>
-        </form>
+        <div class="myTitle">PUZZLE</div>
+        <div class="mySubTitle">Wybierz obrazek</div>
+        <!-- ---------------- GALLERY ---------------- -->
+
+        <div class="gallery" id="gallery">
+            <script id="imageTemplate" type="x-tmpl-mustache">
+
+                <div class="puzzleImage">
+                    <img src="imgs/{{imgdata}}.jpg" image-data="{{imgdata}}"/>
+                </div>
+            </script>
+        </div>
+        <div class="wrapper">
+            <!-- --------------- FORM -------------------- -->
+            <form class="selects">
+                <label for="difficulty" id="label">Wybierz ilość elementów</label>
+                <select onchange="selectDifficulty()" class="select" name="difficulty" id="difficulty">
+                    <!-- <option value="null"></option> -->
+                    <option value="2">2x2</option>
+                    <option value="3" selected="selected">3x3</option>
+                    <option value="4">4x4</option>
+                    <option value="5">5x5</option>
+                    <option value="6">6x6</option>
+                    <option value="7">7x7</option>
+                    <option value="8">8x8</option>
+                </select>
+            </form>
+            <button class="button" id="show-button">Pokaż galerię</button>
+        </div>
+
         <canvas id="canvas"></canvas>
     </div>
+
+
+    <div class="overlay" id="modal-overlay">
+        <div id="finishModal" class="modal">
+            <header>! Brawo !</header>
+            <button id="closeButton" class="button">Zamknij</button>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+    <script type="text/javascript" src="./script.js"></script>
+
 </body>
 
 </html>

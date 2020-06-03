@@ -1,10 +1,11 @@
-const PUZZLE_DIFFICULTY = 3;
+/* VARS */
+var PUZZLE_DIFFICULTY = 3;
 const PUZZLE_HOVER_TINT = '#009900';
 
 
-var image;
+var image = "";
 var _stage;
-var _canvas;
+var _canvas = document.getElementById('canvas');
 
 var _img;
 var _pieces;
@@ -17,18 +18,129 @@ var _currentDropPiece;
 
 var _mouse;
 
-function selectImage() {
-    image = document.getElementById("select").value;
-    console.log(image);
+var overlay;
+var modal;
+var closeButton;
+/* ---------------BROWSER DETECTION----------- */
+// Opera 8.0+
+var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+
+// Firefox 1.0+
+var isFirefox = typeof InstallTrigger !== 'undefined';
+
+// Safari 3.0+ "[object HTMLElementConstructor]" 
+var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+
+// Internet Explorer 6-11
+var isIE = /*@cc_on!@*/false || !!document.documentMode;
+
+// Edge 20+
+var isEdge = !isIE && !!window.StyleMedia;
+
+// Chrome 1 - 79
+var isChrome = !!window.chrome;
+
+// Edge (based on chromium) detection
+var isEdgeChromium = isChrome && (navigator.userAgent.indexOf("Edg") != -1);
+
+// Blink engine detection
+var isBlink = (isChrome || isOpera) && !!window.CSS;
+
+/* -------------END OFBROWSER DETECTION----------- */
+
+/* -------------MUSTACHE----------- */
+
+var listOfImages = [
+    {
+        image: "imgs/losia.jpg",
+        name: "Łoś - klępa",
+        imgdata: "losia"
+    },
+    {
+        image: "imgs/nart.jpg",
+        name: "Obszar Ochrony Ścisłej - Nart",
+        imgdata: "nart"
+    },
+    {
+        image: "imgs/ols.jpg",
+        name: "Ols",
+        imgdata: "ols"
+    },
+    {
+        image: "imgs/pajeczyna.jpg",
+        name: "Pajęczyna",
+        imgdata: "pajeczyna"
+    },
+    {
+        image: "imgs/rys.jpg",
+        name: "Ryś",
+        imgdata: "rys"
+    },
+    {
+        image: "imgs/wydma.jpg",
+        name: "Wydma",
+        imgdata: "wydma"
+    }
+];
+var results = document.getElementById('gallery');
+var mustacheGalleryTemplate = document.getElementById('imageTemplate').innerHTML;
+Mustache.parse(mustacheGalleryTemplate);
+var listPhotos = "";
+
+listOfImages.map( element => {
+    listPhotos += Mustache.render(mustacheGalleryTemplate, element);
+    
+})
+
+var renderedGallery = Mustache.render(listPhotos);
+results.insertAdjacentHTML('beforeend', renderedGallery);
+/* ----------------- END OF MUSTACHE ---------------------- */
+
+const gallery = document.getElementById('gallery');
+const difficulty = document.getElementById("difficulty");
+const showButton = document.getElementById("show-button");
+const label = document.getElementById("label");
+
+gallery.addEventListener('click', function (e) {
+    e.stopPropagation();
+    image = e.target.attributes[1].value;
+
+    gallery.style.display = "none";
+    label.style.display = "block";
+    difficulty.style.display = "block";
+    showButton.style.display = "block";
+    _canvas.style.display = "block"
     init();
-    //document.getElementById("demo").innerHTML = x;
-  }
+});
+
+showButton.addEventListener('click', function (e) {
+    e.stopPropagation();
+    difficulty.style.display = "none";
+    showButton.style.display = "none";
+    gallery.style.display = "flex";
+    _canvas.style.display = "none";
+})
+
+/* ------------------------------- */
+
+
+
+function selectDifficulty() {
+    PUZZLE_DIFFICULTY = document.getElementById("difficulty").value;
+    init();
+}
 
 function init() {
     _img = new Image();
     _img.addEventListener('load', onImage, false);
-    //var image = document.getElementById("select").value;
-    _img.src = `${image}.jpg`;
+    _img.src = `./imgs/${image}.jpg`;
+
+    overlay = document.getElementById("modal-overlay");
+    modal = document.getElementById("finishModal");
+    closeButton = document.getElementById("closeButton");
+
+    document.getElementById("closeButton").addEventListener('click', closeModal)
+    //_canvas.style.display = "block"
 
 
 }
@@ -41,7 +153,7 @@ function onImage(e) {
     initPuzzle();
 }
 function setCanvas() {
-    _canvas = document.getElementById('canvas');
+    //_canvas = document.getElementById('canvas');
     _stage = _canvas.getContext('2d');
     _canvas.width = _puzzleWidth;
     _canvas.height = _puzzleHeight;
@@ -53,12 +165,12 @@ function initPuzzle() {
     _currentPiece = null;
     _currentDropPiece = null;
     _stage.drawImage(_img, 0, 0, _puzzleWidth, _puzzleHeight, 0, 0, _puzzleWidth, _puzzleHeight);
-    createTitle("Click to Start Puzzle");
+    createTitle("Kliknij aby rozpocząć");
     buildPieces();
 }
 function createTitle(msg) {
-    _stage.fillStyle = "red";
-    _stage.globalAlpha = .4;
+    _stage.fillStyle = "grey";
+    _stage.globalAlpha = .7;
     _stage.fillRect(100, _puzzleHeight - 40, _puzzleWidth - 200, 40);
     _stage.fillStyle = "#FFFFFF";
     _stage.globalAlpha = 1;
@@ -110,7 +222,13 @@ function shufflePuzzle() {
 function onPuzzleClick(e) {
     if (e.layerX || e.layerX == 0) {
         _mouse.x = e.layerX - _canvas.offsetLeft;
-        _mouse.y = e.layerY - _canvas.offsetTop;
+        if (isFirefox || isEdge) {
+            _mouse.y = e.layerY - _canvas.offsetTop;
+        }
+        else if (isChrome) {
+            _mouse.y = e.layerY;
+        }
+
     }
     else if (e.offsetX || e.offsetX == 0) {
         _mouse.x = e.offsetX - _canvas.offsetLeft;
@@ -134,6 +252,7 @@ function checkPieceClicked() {
         piece = _pieces[i];
         if (_mouse.x < piece.xPos || _mouse.x > (piece.xPos + _pieceWidth) || _mouse.y < piece.yPos || _mouse.y > (piece.yPos + _pieceHeight)) {
             //PIECE NOT HIT
+
         }
         else {
             return piece;
@@ -145,7 +264,12 @@ function updatePuzzle(e) {
     _currentDropPiece = null;
     if (e.layerX || e.layerX == 0) {
         _mouse.x = e.layerX - _canvas.offsetLeft;
-        _mouse.y = e.layerY - _canvas.offsetTop;
+        if (isFirefox || isEdge) {
+            _mouse.y = e.layerY - _canvas.offsetTop;
+        }
+        else if (isChrome) {
+            _mouse.y = e.layerY;
+        }
     }
     else if (e.offsetX || e.offsetX == 0) {
         _mouse.x = e.offsetX - _canvas.offsetLeft;
@@ -214,10 +338,25 @@ function gameOver() {
     document.onmousedown = null;
     document.onmousemove = null;
     document.onmouseup = null;
-    alert("OK");
+    openModal();
     initPuzzle();
 }
 function shuffleArray(o) {
     for (var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
 }
+
+/* MODAL */
+
+
+function openModal() {
+    overlay.style.display = "block";
+    modal.style.display = "flex";
+}
+
+function closeModal() {
+    overlay.style.display = "none";
+    modal.style.display = "none";
+}
+
+
