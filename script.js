@@ -22,14 +22,9 @@ var overlay;
 var modal;
 var closeButton;
 /* ---------------BROWSER DETECTION----------- */
-// Opera 8.0+
-var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
 
 // Firefox 1.0+
 var isFirefox = typeof InstallTrigger !== 'undefined';
-
-// Safari 3.0+ "[object HTMLElementConstructor]" 
-var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
 
 // Internet Explorer 6-11
 var isIE = /*@cc_on!@*/false || !!document.documentMode;
@@ -43,53 +38,27 @@ var isChrome = !!window.chrome;
 // Edge (based on chromium) detection
 var isEdgeChromium = isChrome && (navigator.userAgent.indexOf("Edg") != -1);
 
-// Blink engine detection
-var isBlink = (isChrome || isOpera) && !!window.CSS;
-
 /* -------------END OFBROWSER DETECTION----------- */
 
 /* -------------MUSTACHE----------- */
 
 var listOfImages = [
-    {
-        image: "imgs/losia.jpg",
-        name: "Łoś - klępa",
-        imgdata: "losia"
-    },
-    {
-        image: "imgs/nart.jpg",
-        name: "Obszar Ochrony Ścisłej - Nart",
-        imgdata: "nart"
-    },
-    {
-        image: "imgs/ols.jpg",
-        name: "Ols",
-        imgdata: "ols"
-    },
-    {
-        image: "imgs/pajeczyna.jpg",
-        name: "Pajęczyna",
-        imgdata: "pajeczyna"
-    },
-    {
-        image: "imgs/rys.jpg",
-        name: "Ryś",
-        imgdata: "rys"
-    },
-    {
-        image: "imgs/wydma.jpg",
-        name: "Wydma",
-        imgdata: "wydma"
-    }
+    { imgdata: "losia" },
+    { imgdata: "nart" },
+    { imgdata: "ols" },
+    { imgdata: "pajeczyna" },
+    { imgdata: "rys" },
+    { imgdata: "wydma" }
 ];
+
 var results = document.getElementById('gallery');
 var mustacheGalleryTemplate = document.getElementById('imageTemplate').innerHTML;
 Mustache.parse(mustacheGalleryTemplate);
 var listPhotos = "";
 
-listOfImages.map( element => {
+listOfImages.map(element => {
     listPhotos += Mustache.render(mustacheGalleryTemplate, element);
-    
+
 })
 
 var renderedGallery = Mustache.render(listPhotos);
@@ -115,6 +84,7 @@ gallery.addEventListener('click', function (e) {
 
 showButton.addEventListener('click', function (e) {
     e.stopPropagation();
+    label.style.display = "none";
     difficulty.style.display = "none";
     showButton.style.display = "none";
     gallery.style.display = "flex";
